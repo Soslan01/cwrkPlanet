@@ -4,7 +4,7 @@ export type RoomItem = {
   id: string;
   name: string;
   max_participants: number;
-  created_at: string; // ISO
+  created_at: string;
 };
 
 export type RoomsListResponse = {
@@ -21,8 +21,8 @@ export type ParticipantItem = {
   user_id: string;
   display_name?: string | null;
   avatar_url?: string | null;
-  joined_at: string;  // ISO
-  last_seen: string;  // ISO
+  joined_at: string;
+  last_seen: string;
 };
 
 export type ParticipantsResponse = {
@@ -34,7 +34,7 @@ export type ChatMessageItem = {
   room_id: string;
   user_id: string;
   text: string;
-  created_at: string; // ISO
+  created_at: string;
   reply_to?: string | null;
 };
 

@@ -1,4 +1,3 @@
-// Главная в маркетинговом стиле; оставлена только одна плитка "Фокус-комнаты".
 import { FeatureCard } from "../components/FeatureCard";
 
 export function Home() {

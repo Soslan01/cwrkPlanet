@@ -1,4 +1,3 @@
-// Простой hash-роутер с подпиской и парсингом параметров
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 
 function getHashPath(): string {
@@ -30,7 +29,6 @@ export function useHashRoute() {
   const route = useSyncExternalStore(subscribe, getHashPath, getHashPath);
 
   const params = useMemo(() => {
-    // Примитивный матчинг для /rooms и /rooms/:id
     const m = route.match(/^\/rooms\/([^/]+)$/);
     return {
       roomId: m ? decodeURIComponent(m[1]) : null,

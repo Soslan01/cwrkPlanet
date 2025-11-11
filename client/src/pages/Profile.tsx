@@ -92,7 +92,7 @@ function formatTime(ts?: number | string) {
   try {
     const date =
       typeof ts === "number"
-        ? new Date(ts * 1000) // UNIX seconds → ms
+        ? new Date(ts * 1000)
         : new Date(ts);
     if (isNaN(date.getTime())) return String(ts);
     return date.toLocaleString(undefined, {

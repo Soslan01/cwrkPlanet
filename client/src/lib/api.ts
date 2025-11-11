@@ -65,22 +65,21 @@ export async function apiFetch<T = unknown>(path: string, opts: ApiOptions = {})
 
   if (res.status === 204) return undefined as unknown as T;
 
-  // Единая распаковка: если ответ вида { data: ... } → возвращаем именно data
+
   const json = await res.json();
   return (json && typeof json === "object" && "data" in json ? json.data : json) as T;
 }
 
-/* ====== AUTH helpers (с учётом data-обёртки) ====== */
+/* ====== AUTH helpers ====== */
 export async function loginOrRegister(
   mode: "login" | "register",
   payload: { email: string; password: string; displayName?: string }
 ): Promise<{ userId: number | null }> {
   const path = mode === "login" ? "/auth/login" : "/auth/register";
-  // apiFetch уже снимет обёртку {data: ...}
   const data: any = await apiFetch(path, { method: "POST", body: payload, noAuth: true });
-
   const access = data?.accessToken ?? data?.access_token ?? null;
   const refresh = data?.refreshToken ?? data?.refresh_token ?? null;
+  
   if (typeof access === "string") tokenVault.setAccessToken(access);
   if (typeof refresh === "string") tokenVault.setRefreshToken(refresh);
 

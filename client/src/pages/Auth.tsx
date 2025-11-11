@@ -1,4 +1,3 @@
-// Общая форма: режимы "login" и "register". После успеха — редирект на #/profile.
 import { useState } from "react";
 import { loginOrRegister } from "../lib/api";
 

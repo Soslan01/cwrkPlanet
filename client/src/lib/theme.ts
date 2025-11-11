@@ -1,4 +1,3 @@
-// Тогглер темы. По умолчанию — системная (prefers-color-scheme).
 import { useEffect, useState } from "react";
 
 export function useTheme() {

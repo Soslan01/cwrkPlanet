@@ -1,6 +1,5 @@
 // Singleton WS-клиент (один сокет на комнату), без дублей сообщений.
 // WS подключается напрямую к room-service.
-// Конфиг через VITE_ROOM_WS_BASE, например: ws://localhost:8082
 import { tokenVault } from "./tokenVault";
 
 export type WsEvent =

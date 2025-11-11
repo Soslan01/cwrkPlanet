@@ -101,10 +101,9 @@ export default function Chat({ roomId, currentUserId, participants }: Props) {
 
           if (mine) {
             return (
-              // ⬇️ делаем строку шириной 100%, чтобы max-w считался от всей ленты
               <div key={m.id} className="chat-appear w-full flex justify-end">
                 <div className="max-w-[76%] px-3 py-2 leading-snug bg-black text-white dark:bg-white dark:text-black rounded-2xl rounded-br-sm">
-                  {/* ⬇️ корректные переносы внутри пузыря */}
+                  {/* корректные переносы внутри пузыря */}
                   <div className="whitespace-pre-wrap break-words [hyphens:auto]">
                     {m.text}
                   </div>
@@ -117,7 +116,6 @@ export default function Chat({ roomId, currentUserId, participants }: Props) {
           }
 
           return (
-            // ⬇️ строка тоже шириной 100%, а «колонка» не сужает контент
             <div key={m.id} className="chat-appear w-full flex justify-start">
               <div className="w-full flex flex-col items-start gap-1">
                 {firstOfGroup && (
@@ -133,7 +131,7 @@ export default function Chat({ roomId, currentUserId, participants }: Props) {
                       {meta.name}
                     </div>
                   )}
-                  {/* ⬇️ переносы «по словам», URL/длинные токены ломаем только при необходимости */}
+                  {/* переносы «по словам» */}
                   <div className="whitespace-pre-wrap break-words [hyphens:auto]">
                     {m.text}
                   </div>

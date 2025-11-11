@@ -42,7 +42,7 @@ export default function RoomsPage() {
         <p className="text-sm opacity-70 mt-1">Create a room or join an existing one</p>
       </div>
 
-      {/* create form — macOS minimal */}
+      {/* create form */}
       <form onSubmit={onCreate} className="glass border hairline rounded-2xl p-4 flex flex-wrap gap-3 items-end">
         <div className="flex flex-col min-w-[220px]">
           <label className="text-[12px] opacity-70 mb-1">Name</label>

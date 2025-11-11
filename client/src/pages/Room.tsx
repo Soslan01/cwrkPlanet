@@ -77,7 +77,7 @@ export default function RoomPage({ roomId }: { roomId: string }) {
         </div>
       </div>
 
-      {/* фикс высоты: далее сетка растягивает блоки по высоте, чат скроллится внутри */}
+      {/* фикс высоты и далее сетка растягивает блоки по высоте, чат скроллится внутри */}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="md:col-span-1">
           <Participants roomId={roomId} />
