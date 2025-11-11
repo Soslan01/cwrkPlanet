@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/cwrk-planet/auth-service/proto/gen/auth/v1;authv1";
+
+import "google/api/annotations.proto";
+
+
+service AuthService {
+  // Вход по email+password → пара токенов и профиль
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  // Регистрация → пара токенов и профиль
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+
+  // Обновление токенов по refresh → новая пара
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/refresh"
+      body: "*"
+    };
+  }
+
+  // Профиль текущего пользователя
+  // API-Gateway после валидации access-JWT должен проставлять x-user-id в метаданные запроса.
+  rpc Me(MeRequest) returns (MeResponse) {
+    option (google.api.http) = { get: "/v1/auth/me" };
+  }
+
+  // Публичные ключи для проверки подписи JWT (пока HS — только метаданные; далее EdDSA/RS256)
+  rpc GetJwks(GetJwksRequest) returns (GetJwksResponse) {
+    option (google.api.http) = { get: "/v1/auth/.well-known/jwks.json" };
+  }
+}
+
+// Login
+message LoginRequest {
+  string email    = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token  = 1;
+  string refresh_token = 2;
+  int64  expires_in    = 3; // seconds
+  User   user          = 4;
+  reserved 100 to 199;
+}
+
+// Register
+message RegisterRequest {
+  string email        = 1;
+  string password     = 2;
+  string display_name = 3; // optional
+}
+
+message RegisterResponse {
+  string access_token  = 1;
+  string refresh_token = 2;
+  int64  expires_in    = 3; // seconds
+  User   user          = 4;
+  reserved 100 to 199;
+}
+
+// Refresh
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message RefreshResponse {
+  string access_token  = 1;
+  string refresh_token = 2;
+  int64  expires_in    = 3; // seconds
+  reserved 100 to 199;
+}
+
+// Me
+message MeRequest {} // x-user-id из метаданных
+message MeResponse {
+  User user = 1;
+  reserved 100 to 199;
+}
+
+// User
+message User {
+  int64  id             = 1;
+  string email          = 2;
+  bool   email_verified = 3;
+  string display_name   = 4;
+  string avatar_url     = 5;
+  int64  created_at     = 6; // unix seconds
+  int64  updated_at     = 7; // unix seconds
+  reserved 100 to 199;
+}
+
+// JWKS
+message GetJwksRequest {}
+message GetJwksResponse {
+  string jwks_json = 1;
+  reserved 100 to 199;
+}

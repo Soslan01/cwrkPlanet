@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { 
+  color-scheme: light dark; 
+  /* высота Dock (подстраховка от наложения) */
+  --dock-height: 72px;
+}
+* { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Inter, system-ui, sans-serif; }
+html, body, #root { height: 100%; }
+body { margin: 0; }
+
+/* Hairline borders */
+.hairline { border: 1px solid rgba(0,0,0,0.08); }
+.dark .hairline { border-color: rgba(255,255,255,0.12); }
+
+/* Glass panels */
+.glass { background-color: rgba(255,255,255,0.75); backdrop-filter: blur(12px); }
+.dark .glass { background-color: rgba(255,255,255,0.06); }
+
+/* Scrollbars */
+.mac-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.mac-scroll::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.15); border-radius: 999px; }
+.mac-scroll::-webkit-scrollbar-track { background: transparent; }
+.dark .mac-scroll::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.15); }
+
+/* Chat message appear */
+@keyframes chat-in { from { transform: translateY(4px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.chat-appear { animation: chat-in 120ms ease-out; }
+
+/* Высота панели чата с учётом TopBar/отступов и фиксированного Dock */
+.chat-panel {
+  height: calc(100vh - 220px - var(--dock-height));
+}
+@media (min-width: 768px) {
+  .chat-panel {
+    height: calc(100vh - 200px - var(--dock-height));
+  }
+}
