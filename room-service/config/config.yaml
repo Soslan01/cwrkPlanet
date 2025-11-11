@@ -1,0 +1,15 @@
+http:
+  addr: ":8082"
+
+grpc:
+  addr: ":9092"
+
+logging:
+  env: "dev"
+  service: "room-service"
+  version: "v0.1.0"
+  backend: "zap"
+  addSource: true
+
+postgres:
+   dsn: "postgres://auth:auth@127.0.0.1:5432/auth?sslmode=disable"

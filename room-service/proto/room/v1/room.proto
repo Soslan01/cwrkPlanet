@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package room.v1;
+
+option go_package = "github.com/cwrk-planet/room-service/proto/gen/room/v1;roomv1";
+
+import "google/protobuf/timestamp.proto";
+
+message Room {
+  string id = 1;
+  string name = 2;
+  int64  max_participants = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message CreateRoomRequest {
+  string name = 1;
+  int64  max  = 2;
+}
+message CreateRoomResponse {
+  Room room = 1;
+}
+
+message ListRoomsRequest {
+  int32 limit = 1;
+  string cursor = 2;
+}
+message ListRoomsResponse {
+  repeated Room items = 1;
+  string next_cursor = 2;
+}
+
+message GetRoomRequest {
+  string id = 1;
+}
+message GetRoomResponse {
+  Room room = 1;
+}
+
+message JoinRoomRequest {
+  string id = 1;
+}
+message JoinRoomResponse {
+  string room_id = 1;
+  string peer_id = 2;
+}
+
+message LeaveRoomRequest {
+  string id = 1;
+}
+message LeaveRoomResponse {}
+
+message Participant {
+  string user_id = 1;
+  google.protobuf.Timestamp joined_at = 2;
+  google.protobuf.Timestamp last_seen = 3;
+}
+
+message ListParticipantsRequest {
+  string id = 1;
+}
+message ListParticipantsResponse {
+  repeated Participant items = 1;
+}
+
+message ChatMessage {
+  string id = 1;
+  string room_id = 2;
+  string user_id = 3;
+  string text = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string reply_to = 6; // на будущее "Когда-нибудь |:)
+}
+
+message GetChatHistoryRequest {
+  string id = 1;
+  string after = 2;  // cursor (base64)
+  int32  limit = 3;
+}
+
+message GetChatHistoryResponse {
+  repeated ChatMessage items = 1;
+  string next_cursor = 2;
+}
+
+service RoomService {
+  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
+  rpc ListRooms(ListRoomsRequest) returns (ListRoomsResponse);
+  rpc GetRoom(GetRoomRequest) returns (GetRoomResponse);
+  rpc JoinRoom(JoinRoomRequest) returns (JoinRoomResponse);
+  rpc LeaveRoom(LeaveRoomRequest) returns (LeaveRoomResponse);
+  rpc ListParticipants(ListParticipantsRequest) returns (ListParticipantsResponse);
+  rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse);
+}

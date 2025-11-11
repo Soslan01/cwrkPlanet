@@ -1,0 +1,19 @@
+
+> cwrk-planet-web@0.1.0 dev
+> vite
+
+Re-optimizing dependencies because vite config has changed
+
+  VITE v5.4.21  ready in 1063 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+> cwrk-planet-web@0.1.0 dev
+> vite
+
+
+  VITE v5.4.21  ready in 206 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
