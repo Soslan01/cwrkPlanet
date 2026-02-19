@@ -1,0 +1,65 @@
+# Architecture:
+# - db: PostgreSQL only
+# - frontend: API Gateway + Client (nginx) - single entry point
+# - backend: Auth service and future microservices
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: cwrk-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    container_name: cwrk-frontend
+    environment:
+      CONFIG_PATH: /app/config/config.yaml
+    ports:
+      - "3000:80"
+    volumes:
+      - ./api-gateway/config/config.yaml:/app/config/config.yaml
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: cwrk-backend
+    environment:
+      CONFIG_PATH: /app/config/config.yaml
+    volumes:
+      - ./auth-service/config/config.yaml:/app/config/config.yaml
+      - ./auth-service/config/keys:/app/config/keys
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

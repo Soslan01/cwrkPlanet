@@ -6,80 +6,99 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cwrk-planet/auth-service/internal/pg"
-
 	"gopkg.in/yaml.v3"
 )
 
+// HTTP / GRPC adresses
 type Server struct {
-	GRPCAddr        string        `yaml:"grpcAddr"`
-	HTTPAddr        string        `yaml:"httpAddr"`
-	ShutdownTimeout time.Duration `yaml:"shutdownTimeout"`
+	GRPCAdress      string        `yaml:"grpc_adress"`
+	HTTPAdress      string        `yaml:"http_adress"`
+	ShutdownTimeout time.Duration `yaml:"shutdown_timeout"`
 }
 
-type Logging struct {
-	Env       string `yaml:"env"`
-	Service   string `yaml:"service"`
-	Version   string `yaml:"version"`
-	Backend   string `yaml:"backend"`
-	AddSource bool   `yaml:"addSource"`
-	Debug     bool   `yaml:"debug"`
-}
+// Validate conf.Server block
+func (s Server) Validate() error {
+	if s.GRPCAdress == "" {
+		return errors.New("GRPCAdress is required")
+	}
 
-type Postgres struct {
-	DSN               string        `yaml:"dsn"`
-	MaxConns          int32         `yaml:"maxConns"`
-	MinConns          int32         `yaml:"minConns"`
-	MaxConnLifetime   time.Duration `yaml:"maxConnLifetime"`
-	MaxConnIdleTime   time.Duration `yaml:"maxConnIdleTime"`
-	HealthCheckPeriod time.Duration `yaml:"healthCheckPeriod"`
-	ApplicationName   string        `yaml:"applicationName"`
-}
-
-func (p Postgres) Validate() error {
-	if p.DSN == "" {
-		return errors.New("postgres.DSN is required")
+	if s.HTTPAdress == "" {
+		return errors.New("HTTPAdress is required")
 	}
 
 	return nil
 }
 
-func (p Postgres) ToPGConfig() pg.Config {
-	return pg.Config{
-		DSN:               p.DSN,
-		MaxConns:          p.MaxConns,
-		MinConns:          p.MinConns,
-		MaxConnLifetime:   p.MaxConnLifetime,
-		MaxConnIdleTime:   p.MaxConnIdleTime,
-		HealthCheckPeriod: p.HealthCheckPeriod,
-		ApplicationName:   p.ApplicationName,
+type Logger struct {
+	Env       string `yaml:"env"`
+	Service   string `yaml:"service"`
+	Version   string `yaml:"version"`
+	Backend   string `yaml:"backend"`
+	AddSource bool   `yaml:"add_source"`
+	Debug     bool   `yaml:"debug"`
+}
+
+// Validate conf.Logger block
+func (lg Logger) Validate() error {
+	if lg.Env == "" {
+		return errors.New("env is required")
 	}
+
+	if lg.Service == "" {
+		return errors.New("service is required")
+	}
+
+	if lg.Version == "" {
+		return errors.New("version is required")
+	}
+
+	// Backend, AddSource, and Debug are optional fields
+	return nil
+}
+
+type Postgres struct {
+	DSN               string        `yaml:"dsn"`
+	MaxConns          int32         `yaml:"max_conns"`
+	MinConns          int32         `yaml:"min_conns"`
+	MaxConnLifeTime   time.Duration `yaml:"max_conn_lifetime"`
+	MaxConnIdleTime   time.Duration `yaml:"max_conn_idletime"`
+	HealthCheckPeriod time.Duration `yaml:"healthcheck_period"`
+	ApplicationName   string        `yaml:"application_name"`
+}
+
+func (pg Postgres) Validate() error {
+	if pg.DSN == "" {
+		return errors.New("postgres DSN is required")
+	}
+
+	return nil
 }
 
 type Password struct {
-	MinLength  int `yaml:"minLength"`
-	BcryptCost int `yaml:"bcryptCost"`
+	MinLength  int `yaml:"min_length"`
+	BcryptCost int `yaml:"bcrypt_cost"` // сложность генерации хэша для пароля
 }
 
-func (p Password) Validate() error {
-	if p.MinLength < 6 {
-		return errors.New("security.password.minLength must be >= 6")
+func (pass Password) Validate() error {
+	if pass.MinLength < 6 {
+		return errors.New("security.password.min_length must be >= 6")
 	}
-	if p.BcryptCost != 0 && (p.BcryptCost < 4 || p.BcryptCost > 18) {
-		return errors.New("security.password.bcryptCost must be in [4..18]")
+
+	if pass.BcryptCost != 0 && (pass.BcryptCost < 4 || pass.BcryptCost > 18) {
+		return errors.New("security.password.bcrypt_cost must be in [4...18]")
 	}
 
 	return nil
 }
 
 type JWT struct {
-	Alg            string        `yaml:"alg"`            // обязательно
-	PrivateKeyPath string        `yaml:"privateKeyPath"` // обязательно
-	PublicKeyPath  string        `yaml:"publicKeyPath"`  // обязательно
-	Issuer         string        `yaml:"issuer"`         // обязательно
-	Audience       string        `yaml:"audience"`       // по желанию, но пока особо не проверятся
-	AccessTTL      time.Duration `yaml:"accessTTL"`      // напр. 15m
-	ClockSkew      time.Duration `yaml:"clockSkew"`      // напр. 30s
+	Alg            string        `yaml:"alg"`
+	PrivateKeyPath string        `yaml:"private_key_path"`
+	PublicKeyPath  string        `yaml:"public_key_path"`
+	Issuer         string        `yaml:"issuer"`
+	Audience       string        `yaml:"audience"`
+	AccessTTL      time.Duration `yaml:"access_ttl"`
+	ClockSkew      time.Duration `yaml:"clock_skew"`
 }
 
 func (j JWT) Validate() error {
@@ -125,10 +144,16 @@ type Config struct {
 	Server   Server   `yaml:"server"`
 	Security Security `yaml:"security"`
 	Postgres Postgres `yaml:"postgres"`
-	Logging  Logging  `yaml:"logging"`
+	Logging  Logger   `yaml:"logging"`
 }
 
 func (c *Config) Validate() error {
+	if err := c.Server.Validate(); err != nil {
+		return err
+	}
+	if err := c.Logging.Validate(); err != nil {
+		return err
+	}
 	if err := c.Security.Validate(); err != nil {
 		return err
 	}

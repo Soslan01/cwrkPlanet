@@ -1,0 +1,15 @@
+server:
+  http_address: ":8080"
+  shutdown_timeout: 30s
+
+logging:
+  env: "dev"
+  service: "api-gateway"
+  version: "1.0.0"
+  debug: true
+
+clients:
+  auth:
+    # Docker: backend service name. Local: use config.local.yaml with localhost:50051
+    address: "backend:50051"
+    timeout: 30s

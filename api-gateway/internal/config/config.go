@@ -1,70 +1,110 @@
 package config
 
 import (
-	"fmt"
+	"errors"
 	"os"
-	"path/filepath"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
-type HTTP struct {
-	Addr         string        `yaml:"addr"`         // ":8080"
-	ReadTimeout  time.Duration `yaml:"readTimeout"`  // "15s"
-	WriteTimeout time.Duration `yaml:"writeTimeout"` // "30s"
-	IdleTimeout  time.Duration `yaml:"idleTimeout"`  // "60s"
+// Server configuration
+type Server struct {
+	HTTPAddress     string        `yaml:"http_address"`
+	ShutdownTimeout time.Duration `yaml:"shutdown_timeout"`
 }
 
-type Upstream struct {
-	AuthTarget     string `yaml:"authTarget"`
-	RoomGRPCTarget string `yaml:"roomGRPCTarget"`
-}
-
-type Logging struct {
-	Env       string `yaml:"env"`       // dev|stage|prod
-	Service   string `yaml:"service"`   // "api-gateway"
-	Version   string `yaml:"version"`   // "0.1.0"
-	AddSource bool   `yaml:"addSource"` // true/false
-	Backend   string `yaml:"backend"`   // "std"|"zap"
-	Debug     bool   `yaml:"debug"`     // включает подробные логи
-}
-
-type Config struct {
-	HTTP     HTTP     `yaml:"http"`
-	Logging  Logging  `yaml:"logging"`
-	Upstream Upstream `yaml:"upstream"`
-}
-
-func Load() (*Config, error) {
-	path := os.Getenv("CONFIG_PATH")
-	if path == "" {
-		path = filepath.Join("internal", "config", "config.yaml")
+func (s Server) Validate() error {
+	if s.HTTPAddress == "" {
+		return errors.New("http_address is required")
 	}
-	data, err := os.ReadFile(path)
+	return nil
+}
+
+type Logger struct {
+	Env       string `yaml:"env"`
+	Service   string `yaml:"service"`
+	Version   string `yaml:"version"`
+	Backend   string `yaml:"backend"`
+	AddSource bool   `yaml:"add_source"`
+	Debug     bool   `yaml:"debug"`
+}
+
+func (lg Logger) Validate() error {
+	if lg.Env == "" {
+		return errors.New("env is required")
+	}
+
+	if lg.Service == "" {
+		return errors.New("service is required")
+	}
+
+	if lg.Version == "" {
+		return errors.New("version is required")
+	}
+
+	// Backend, AddSource, and Debug are optional fields
+	return nil
+}
+
+// AuthClient configuration for auth-service gRPC client
+type AuthClient struct {
+	Address string        `yaml:"address"`
+	Timeout time.Duration `yaml:"timeout"`
+}
+
+func (ac AuthClient) Validate() error {
+	if ac.Address == "" {
+		return errors.New("auth_client.address is required")
+	}
+	return nil
+}
+
+// Clients configuration
+type Clients struct {
+	Auth AuthClient `yaml:"auth"`
+}
+
+func (c Clients) Validate() error {
+	return c.Auth.Validate()
+}
+
+// Config is the main configuration structure
+type Config struct {
+	Server  Server  `yaml:"server"`
+	Logging Logger  `yaml:"logging"`
+	Clients Clients `yaml:"clients"`
+}
+
+func (c *Config) Validate() error {
+	if err := c.Server.Validate(); err != nil {
+		return err
+	}
+	if err := c.Logging.Validate(); err != nil {
+		return err
+	}
+	if err := c.Clients.Validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// LoadConfig loads configuration from YAML file
+func LoadConfig(path ...string) (*Config, error) {
+	filename := "config/config.yaml"
+	if len(path) > 0 && strings.TrimSpace(path[0]) != "" {
+		filename = path[0]
+	}
+
+	data, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("read config: %w", err)
+		return nil, err
 	}
 
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("unmarshal yaml: %w", err)
-	}
-
-	if cfg.HTTP.Addr == "" {
-		cfg.HTTP.Addr = ":8080"
-	}
-	if cfg.Upstream.RoomGRPCTarget == "" {
-		cfg.Upstream.RoomGRPCTarget = "http://localhost:9092"
-	}
-	if cfg.HTTP.ReadTimeout == 0 {
-		cfg.HTTP.ReadTimeout = 15 * time.Second
-	}
-	if cfg.HTTP.WriteTimeout == 0 {
-		cfg.HTTP.WriteTimeout = 30 * time.Second
-	}
-	if cfg.HTTP.IdleTimeout == 0 {
-		cfg.HTTP.IdleTimeout = 60 * time.Second
+		return nil, err
 	}
 
 	return &cfg, nil
