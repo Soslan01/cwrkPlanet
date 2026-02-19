@@ -1,0 +1,33 @@
+server:
+  grpc_adress: ":50051"
+  http_adress: ":8081"
+  shutdown_timeout: 30s
+
+logging:
+  env: "dev"
+  service: "auth-service"
+  version: "1.0.0"
+  debug: true
+
+postgres:
+  # Local dev: postgres in Docker (port 5433) or native
+  dsn: "postgres://postgres:postgres@localhost:5433/auth_db?sslmode=disable"
+  max_conns: 25
+  min_conns: 5
+  max_conn_lifetime: 1h
+  max_conn_idletime: 30m
+  healthcheck_period: 1m
+  application_name: "auth-service"
+
+security:
+  password:
+    min_length: 8
+    bcrypt_cost: 10
+  jwt:
+    alg: "RS256"
+    private_key_path: "./config/keys/auth_private.pem"
+    public_key_path: "./config/keys/auth_public.pem"
+    issuer: "auth-service"
+    audience: "api-gateway"
+    access_ttl: 15m
+    clock_skew: 5s

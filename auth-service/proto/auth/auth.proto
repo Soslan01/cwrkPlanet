@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/cwrk-planet/auth-service/internal/proto/auth";
+
+// AuthService provides authentication and authorization functionality
+service AuthService {
+  // Register creates a new user account and returns tokens
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  
+  // Login authenticates a user and returns tokens
+  rpc Login(LoginRequest) returns (LoginResponse);
+  
+  // RefreshToken generates new tokens using a refresh token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  
+  // Logout invalidates a session
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  
+  // ValidateToken validates an access token
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // GetUser retrieves user information by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+// RegisterRequest contains registration information
+message RegisterRequest {
+  string email = 1;
+  string username = 2;
+  string password = 3;
+  string display_name = 4;
+  optional string avatar_url = 5;
+}
+
+// RegisterResponse contains tokens and user information
+message RegisterResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_at = 3;
+  User user = 4;
+}
+
+// LoginRequest contains login credentials
+message LoginRequest {
+  string email_or_username = 1;
+  string password = 2;
+  optional string user_agent = 3;
+  optional string ip_address = 4;
+}
+
+// LoginResponse contains tokens and user information
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_at = 3;
+  User user = 4;
+}
+
+// RefreshTokenRequest contains a refresh token
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+// RefreshTokenResponse contains new tokens
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_at = 3;
+}
+
+// LogoutRequest contains a refresh token to invalidate
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+// LogoutResponse is empty
+message LogoutResponse {}
+
+// ValidateTokenRequest contains an access token to validate
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+// ValidateTokenResponse indicates if token is valid and contains user ID
+message ValidateTokenResponse {
+  bool valid = 1;
+  int64 user_id = 2;
+}
+
+// GetUserRequest contains a user ID
+message GetUserRequest {
+  int64 user_id = 1;
+}
+
+// GetUserResponse contains user information
+message GetUserResponse {
+  User user = 1;
+}
+
+// User represents a user in the system
+message User {
+  int64 id = 1;
+  string email = 2;
+  string username = 3;
+  string display_name = 4;
+  optional string avatar_url = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}

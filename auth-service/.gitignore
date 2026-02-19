@@ -1,5 +1,7 @@
 _pgdata/
 .cache/
+config/keys/auth_private.pem
+config/keys/auth_public.pem
 auth_private.pem
 auth_public.pem
 config.yaml

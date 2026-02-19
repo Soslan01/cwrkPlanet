@@ -1,34 +1,77 @@
-import { TopBar } from "./components/TopBar";
-import { Dock } from "./components/Dock";
-import { useHashRoute } from "./lib/router";
-import { Home } from "./pages/Home";
-import { Auth } from "./pages/Auth";
-import { Profile } from "./pages/Profile";
-import RoomsPage from "./pages/Rooms";
-import RoomPage from "./pages/Room";
+import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import BottomTabBar, { TabId } from './components/BottomTabBar';
+import AppHeader from './components/AppHeader';
+import ParticleBackground from './components/ParticleBackground';
+import WelcomePage from './pages/WelcomePage';
+import LoginPage from './pages/LoginPage';
+import ProfilePage from './pages/ProfilePage';
+import './styles/globals.css';
 
-export default function App() {
-  const { route, params } = useHashRoute();
+const AppContent: React.FC = () => {
+  const [currentTab, setCurrentTab] = useState<TabId>('home');
+  const { user, loading, logout } = useAuth();
 
-  let Page: React.ComponentType<any> = Home;
-  let pageProps: any = {};
+  useEffect(() => {
+    if (loading) return;
+    if (user && currentTab === 'auth') {
+      setCurrentTab('profile');
+    }
+    if (!user && currentTab === 'profile') {
+      setCurrentTab('home');
+    }
+  }, [user, loading, currentTab]);
 
-  if (route.startsWith("/auth")) Page = Auth;
-  else if (route.startsWith("/profile")) Page = Profile;
-  else if (route === "/rooms") Page = RoomsPage;
-  else {
-    const m = route.match(/^\/rooms\/([^/]+)$/);
-    if (m) { Page = RoomPage; pageProps = { roomId: params.roomId! }; }
-  }
+  const handleTabChange = (tab: TabId) => {
+    if (tab === 'profile' && !user) {
+      setCurrentTab('auth');
+      return;
+    }
+    if (tab === 'auth' && user) {
+      logout();
+      setCurrentTab('home');
+      return;
+    }
+    setCurrentTab(tab);
+  };
+
+  const handleHeaderLoginClick = () => {
+    setCurrentTab('auth');
+  };
+
+  const handleHeaderLogoutClick = () => {
+    logout();
+    setCurrentTab('home');
+  };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 transition-colors">
-      <TopBar />
-      {}
-      <main className="mx-auto max-w-3xl px-4 pt-20 pb-[var(--dock-height)]">
-        <Page {...pageProps} />
+    <div className="app">
+      <ParticleBackground />
+      <AppHeader
+        isLoggedIn={!!user}
+        onLoginClick={handleHeaderLoginClick}
+        onLogoutClick={handleHeaderLogoutClick}
+      />
+      <main className="app-content">
+        {currentTab === 'home' && <WelcomePage />}
+        {currentTab === 'auth' && <LoginPage />}
+        {currentTab === 'profile' && <ProfilePage />}
       </main>
-      <Dock />
+      <BottomTabBar
+        currentTab={currentTab}
+        onTabChange={handleTabChange}
+        isLoggedIn={!!user}
+      />
     </div>
   );
-}
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
+
+export default App;

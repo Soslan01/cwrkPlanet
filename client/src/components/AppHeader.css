@@ -1,0 +1,84 @@
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='dark'] .app-header {
+  background: rgba(28, 28, 30, 0.72);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header-btn {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  border-radius: 10px;
+}
+
+.app-header-btn:active {
+  transform: scale(0.97);
+}
+
+.app-header-btn-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.app-header-btn-icon:hover {
+  background: var(--background-hover);
+}
+
+.app-header-btn-auth {
+  padding: 10px 18px;
+  background: var(--primary-color);
+  color: white;
+}
+
+.app-header-btn-auth:hover {
+  background: var(--primary-hover);
+  opacity: 0.95;
+}
+
+.app-header-btn-auth:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}

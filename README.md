@@ -1,172 +1,50 @@
-# cwrkPlanet
+# CWRK
 
-Аналог стримингового сервиса для совместного обучения в удалённых комнатах.
+## Architecture
 
-Для запуска необходимо, чтобы был установлен docker и postgreSQL. В корне директории все запускается командой `make run`. Завершается все командами `make stop` и `make down`(для docker)
+| Container | Services | Description |
+|-----------|----------|-------------|
+| **db** | PostgreSQL | Database only |
+| **frontend** | API Gateway + Client (nginx) | Single entry point: serves SPA and proxies /api to api-gateway |
+| **backend** | Auth-service (+ future services) | Backend microservices |
 
-## ⚙️ Архитектура
-
-**Api-gateway** — сервис-прокси, направляющий все запросы от клиента (frontend) к соответствующим сервисам через gRPC.
-
-**Пример цепочки запросов:**
-`client (HTTP)` → `api-gateway (gRPC)` → `auth-service`
-Ответ возвращается обратно тем же путём.
-
----
-
-## 🔐 Auth-service
-
-Сервис отвечает за аутентификацию и управление пользователями.
-Использует алгоритм **RS256** для подписи токенов.
-Данные о пользователях, сессиях и паролях хранятся в **PostgreSQL**, контейнер поднимается вместе с сервисом.
-Эта же база используется и в `room-service`.
-
-### **Handlers**
-
-#### Регистрация
-
-**POST** `localhost:8080/auth/register`
-
-```json
-{
-  "email": "leorik5@mail.com",
-  "displayName": "leorik5",
-  "password": "leo100398"
-}
-```
-
-#### Логин
-
-**POST** `localhost:8080/auth/login`
-
-```json
-{
-  "email": "leorik5@mail.com",
-  "password": "sos100398"
-}
-```
-
-#### Обновление токена
-
-**POST** `localhost:8080/auth/refresh`
-
-```json
-{
-  "refreshToken": "5k299SV304UUx9xWQWjOdnzqeMNRF0fAgOCA19bZUNw"
-}
-```
-
-#### Получение информации о пользователе
-
-**GET** `localhost:8080/auth/me`
-**Headers:**
+## Request Flow
 
 ```
-Authorization: Bearer <access_token>
+Client (browser) → nginx → api-gateway → backend services (gRPC)
 ```
 
----
+All API requests use `/api` prefix and are proxied through nginx.
 
-## 🏠 Room-service
+## Docker
 
-Отвечает за бизнес-логику комнат и взаимодействие между пользователями.
-Коммуникация таким же образом (как с auth-service) происходит через `api-gateway`.
-
-**Пример:**
-`client (HTTP)` → `api-gateway (gRPC)` → `room-service`
-
-В **PostgreSQL** хранятся:
-
-* данные о комнатах;
-* участниках;
-* история сообщений (в будущем будет также выгружаться в Redis для ускорения доступа).
-
-Поддерживается **WebSocket** для обмена сообщениями в комнатах.
-Планируется интеграция **WebRTC** для голосовых каналов. (Либо отдельный сервис)
-
----
-
-### **Handlers**
-
-#### Создание комнаты
-
-**POST** `localhost:8080/rooms`
-**Headers:**
-
-```
-Authorization: Bearer <access_token>
-X-User-ID: 11
-Content-Type: application/json
+```bash
+docker compose up
 ```
 
-```json
-{
-  "name": "Test room3",
-  "max": 5
-}
-```
+- App: http://localhost:3000
+- Database: localhost:5433 (postgres/postgres)
 
-#### Список комнат
+## Local Development (no Docker except DB)
 
-**GET** `localhost:8080/rooms?limit=10`
+1. Start database:
+   ```bash
+   docker compose up -d db
+   ```
 
-#### Информация о комнате
+2. Start auth-service:
+   ```bash
+   cd auth-service && make run
+   ```
 
-**GET** `localhost:8080/rooms/{id}`
+3. Start api-gateway:
+   ```bash
+   cd api-gateway && make run
+   ```
 
-#### Присоединение к комнате
+4. Start client (Vite dev server with /api proxy):
+   ```bash
+   cd client && npm run dev
+   ```
 
-**POST** `localhost:8080/rooms/{id}/join`
-
-#### Выход из комнаты
-
-**POST** `localhost:8080/rooms/{id}/leave`
-
-#### Список участников
-
-**GET** `localhost:8080/rooms/{id}/participants`
-
-#### История сообщений
-
-**GET** `localhost:8080/rooms/{id}/chat?after=&limit=20`
-
----
-
-## 🔁 WebSocket (чат)
-
-**Endpoint:**
-`ws://localhost:8082/ws/rooms/{id}?access_token=<access_token>&user_id=<id>`
-
-**Пример входящего сообщения:**
-
-```json
-{
-  "type": "chat",
-  "payload": {
-    "message": "Всем привет!"
-  }
-}
-```
-
-**Пример события (peer):**
-
-```json
-{
-  "type": "chat",
-  "payload": {
-    "room_id": "room_123",
-    "user_id": "1",
-    "message": "Всем привет!",
-    "msg_id": "msg_20251110_1",
-    "ts_unix": 1731253425
-  }
-}
-```
-
----
-
-Проект активно развивается. В ближайших планах:
-
-* валидация JWT в микросервисах через публичный ключ;
-* перенос истории сообщений в Redis;
-* внедрение WebRTC для голосовых комнат.
+Configs: `config.local.yaml` is used when `CONFIG_PATH` is not set (services default to localhost).
